@@ -1,0 +1,12 @@
+/* Collape civicrm_membership_log into one entry per membership per day, and denormalize */
+INSERT INTO membership_logs.collapsed_log (
+  SELECT m.contact_id, m.id as membership_id, log.membership_type_id, m.owner_membership_id, log.start_date, log.end_date, log.status_id, log.modified_date FROM
+    ( SELECT a.membership_id, a.status_id, a.start_date, a.end_date, a.modified_date, a.membership_type_id FROM
+        civicrm_membership_log a
+      LEFT JOIN
+        civicrm_membership_log b
+          ON a.membership_id = b.membership_id and a.modified_date = b.modified_date and a.id < b.id
+      where b.id IS NULL
+    ) log
+  JOIN civicrm_membership m ON m.id = log.membership_id
+);
