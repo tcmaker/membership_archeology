@@ -1,0 +1,13 @@
+/* Get mapping of all merged contact ids. These appear to show most recent mapping, so we shouldn't need to recurse on this mapping */
+
+CREATE VIEW membership_logs.contact_merge AS -- optional view creation
+SELECT p.activity_date_time, contact_a.contact_id AS merged_contact, contact_b.contact_id AS deleted_contact
+  FROM membership_cividb.civicrm_activity p
+  JOIN membership_cividb.civicrm_activity c
+    -- 51 and 55 are the merge activity, we need both halves of this b/c each only relates to one of the two merged contacts
+    ON c.parent_id = p.id AND p.activity_type_id = 51 AND c.activity_type_id = 55
+  JOIN membership_cividb.civicrm_activity_contact contact_a
+    -- 3 is the subject of the action, 2 performed it, not sure what 1 is, but it isn't used in 51/55
+    ON contact_a.activity_id = p.id AND contact_a.record_type_id = 3
+  JOIN membership_cividb.civicrm_activity_contact contact_b
+    ON contact_b.activity_id = c.id AND contact_b.record_type_id = 3;
