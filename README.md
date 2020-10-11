@@ -5,7 +5,7 @@ sql and more for finding what is hidden in CiviCRM!
 Just use the same code as the historical counts. Don't trust Civi, because it relies on cron jobs to set membership status. This happens late, and race conditions are certain to happen.
 
 ## getting historical membership counts
-civicrm_membership_log is treated as the gound truth, although log entries may be missing for very old memberships. civicrm_membership is only used to map the relations between membership, contact, and membership_log.
+civicrm_membership_log is treated as the gound truth. civicrm_membership is only used to map the relations between membership, contact, and membership_log.
 
 civicrm_activity is used to produce mapping of so called "merged and deleted" contacts
 
