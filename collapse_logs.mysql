@@ -1,12 +1,11 @@
 /* Collape civicrm_membership_log into one entry per membership per day, and denormalize */
-INSERT INTO membership_logs.collapsed_log (
-  SELECT m.contact_id, m.id as membership_id, log.membership_type_id, m.owner_membership_id, log.start_date, log.end_date, log.status_id, log.modified_date FROM
-    ( SELECT a.membership_id, a.status_id, a.start_date, a.end_date, a.modified_date, a.membership_type_id FROM
-        civicrm_membership_log a
-      LEFT JOIN
-        civicrm_membership_log b
-          ON a.membership_id = b.membership_id and a.modified_date = b.modified_date and a.id < b.id
-      where b.id IS NULL
-    ) log
-  JOIN civicrm_membership m ON m.id = log.membership_id
-);
+CREATE VIEW membership_logs.collapsed_membership_log AS -- optional view creation       
+SELECT m.contact_id, m.id AS membership_id, log.membership_type_id, m.owner_membership_id, log.status_id, log.start_date, log.end_date, log.modified_date FROM
+  membership_cividb.civicrm_membership_log log
+    -- join log w/ membership to get contact_id
+    JOIN membership_cividb.civicrm_membership m
+      ON log.membership_id = m.id
+    -- join log w/ self to get the last log item per membership_id per modified_date
+    LEFT JOIN membership_cividb.civicrm_membership_log log_b
+      ON log.membership_id = log_b.membership_id AND log.modified_date = log_b.modified_date and log.id < log_b.id
+  WHERE log_b.id IS NULL;
