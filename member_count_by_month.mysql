@@ -1,10 +1,10 @@
 /* based on collapsed_log, get current and new memberships for a single date */
 SET @report_date = '2020-10-01';
 
-SELECT a.contact_id, a.membership_id, a.end_date FROM
-(SELECT * FROM collapsed_log WHERE modified_date <= @report_date) a
+SELECT a.contact_id, a.membership_id, a.membership_type_id, a.owner_membership_id, a.end_date FROM
+(SELECT * FROM collapsed_membership_log WHERE modified_date <= @report_date) a
 LEFT JOIN
-(SELECT * FROM collapsed_log WHERE modified_date <= @report_date) b
+(SELECT * FROM collapsed_membership_log WHERE modified_date <= @report_date) b
 ON a.membership_id = b.membership_id AND a.modified_date < b.modified_date
 WHERE b.membership_id IS NULL
   AND a.start_date <= @report_date
