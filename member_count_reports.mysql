@@ -26,13 +26,13 @@ group by type;
 
 -- aggregate record aggregate counts, stored procedure populates table containing membership totals for each date
 DELIMITER //
-CREATE PROCEDURE populate_monthly_totals(start_date DATE)
+CREATE PROCEDURE populate_daily_membership_totals(start_date DATE)
 BEGIN
   DECLARE report_date DATE;
   SET report_date = start_date;
-  TRUNCATE TABLE `monthly_totals`;
+  TRUNCATE TABLE `daily_membership_type_total`;
   WHILE report_date < current_date() DO
-    INSERT INTO monthly_totals
+    INSERT INTO daily_membership_type_total
       SELECT report_date AS date, a.membership_type_id + IF(a.owner_membership_id,100,0) as type, count(*) as count
       FROM (SELECT * FROM collapsed_membership_log WHERE modified_date <= report_date) a
       LEFT JOIN (SELECT * FROM collapsed_membership_log WHERE modified_date <= report_date) b
@@ -45,8 +45,16 @@ END //
 
 DELIMITER ;
 
+-- table to support the above procedure
+CREATE TABLE `daily_membership_type_total` (
+  `date` date NOT NULL,
+  `type` int(11) NOT NULL,
+  `count` int(11) NOT NULL,
+  PRIMARY KEY (`date`,`type`)
+)
+
 -- generate data going back to roughly the beginning
-CALL populate_monthly_totals('2016-01-01');
+CALL populate_daily_membership_totals('2016-01-01');
 
 -- pivot table summing each membership type per month
 SELECT date,
@@ -70,4 +78,4 @@ GROUP_CONCAT(IF(type=113, count, NULL)) AS monthly_family,
 GROUP_CONCAT(IF(type=114, count, NULL)) AS annual_family,
 GROUP_CONCAT(IF(type=115, count, NULL)) AS board_fixed_family,
 GROUP_CONCAT(IF(type=116, count, NULL)) AS staff_fixed_family
-FROM monthly_totals GROUP BY date;
+FROM daily_membership_type_total GROUP BY date;
