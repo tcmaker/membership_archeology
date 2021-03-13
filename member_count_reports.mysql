@@ -24,7 +24,7 @@ WHERE b.membership_id IS NULL
   AND a.status_id IN (1,2)
 group by type;
 
--- aggregate record aggregate counts, stored procedure populates table containing membership totals for each date
+-- stored procedure populates table containing membership totals for each date
 DELIMITER //
 CREATE PROCEDURE populate_daily_membership_totals(start_date DATE)
 BEGIN
@@ -56,7 +56,8 @@ CREATE TABLE `daily_membership_type_total` (
 -- generate data going back to roughly the beginning
 CALL populate_daily_membership_totals('2016-01-01');
 
--- pivot table summing each membership type per month
+-- aggregate each date to a single row
+CREATE VIEW membership_logs.daily_membership_type_total_aggregate AS 
 SELECT date,
 GROUP_CONCAT(IF(type=1,   count, NULL)) AS standard,
 GROUP_CONCAT(IF(type=2,   count, NULL)) AS rockstar,
